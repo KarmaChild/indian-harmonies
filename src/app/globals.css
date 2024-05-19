@@ -31,3 +31,40 @@ body {
     text-wrap: balance;
   }
 }
+
+.hover-bg-grey:hover {
+  background-color: #EEEEEE;
+}
+
+.hover-bg-ios-blue:hover {
+  background-color: #4DA6FF ;
+}
+
+.bg-ios-blue {
+  background-color: #007AFF;
+}
+
+.bg-ios-blue {
+  background-color: #007AFF;
+}
+
+.text-14 {
+  font-size: 16px;
+}
+
+.font-x-light {
+  font-weight: 200;
+}
+
+.font-light {
+  font-weight: 300;
+}
+
+.font-regular {
+  font-weight: normal;
+}
+
+.font-medium {
+  font-weight: 500;
+}
+
