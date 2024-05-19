@@ -48,8 +48,36 @@ body {
   background-color: #007AFF;
 }
 
+.bg-answer-orange {
+  background-color: #FF8000;
+}
+
+.bg-answer-green {
+  background-color: #CCFF00;
+}
+
+.bg-answer-red {
+  background-color: #C62D42;
+}
+
+.bg-answer-brown {
+  background-color: #9F8170;
+}
+
+.bg-answer-blue {
+  background-color: #8EE5EE;
+}
+
+.text-12 {
+  font-size: 12px;
+}
+
 .text-14 {
-  font-size: 16px;
+  font-size: 14px;
+}
+
+.text-20 {
+  font-size: 20px;
 }
 
 .font-x-light {
@@ -67,4 +95,3 @@ body {
 .font-medium {
   font-weight: 500;
 }
-
