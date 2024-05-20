@@ -1,75 +1,45 @@
 'use client'
 import { Tile } from "@/app/components/Tile/Tile"
-import { SubmitButton } from "@/app/components/Submit/SubmitButton"
-import { useState } from "react"
+import { SubmitButton } from "@/app/components/Buttons/Submit/SubmitButton"
+import {useEffect, useState} from "react"
 import { AnswerTile } from "@/app/components/Tile/AnswerTile"
+import {ClearButton} from "@/app/components/Buttons/Clear/ClearButton"
+import {getGroup} from "@/api/get-group"
+import Loading from "@/app/loading";
+import Image from "next/image";
 
-interface SelectionItem {
+interface Item {
     category: string
     label: string
-}
-
-interface Group {
-    [key: string]: string[];
 }
 
 const ANSWER_COLOR = ['bg-answer-green', 'bg-answer-orange', 'bg-answer-blue', 'bg-answer-red']
 
 export default function Home() {
-    const _group1 = {
-        "Vijay Movies": ["Kaavalan", "Mersal", "Leo", "Ghili"],
-        "Movies with Anirudh soundtrack": ["Kathi", "3", "Vikram", "Jawan"],
-        "Multipart Movies": ["K.G.F", "Bahubali", "ABCD", "Dhrishyam"],
-        "Movies without a Heroine": ["Kaithi", "Aavesham", "Manjummel Boys", "Bramayugam"]
-    }
 
-    const _group2 = {
-        "Female lead movies": ["English Vinglish", "Netrikann", "36 Vayathinil", "Captain Marvel"],
-        "Horror Movies": ["Chandramukhi", "Muni", "Romancham", "Saw"],
-        "Stranded Movies": ["Life of Pi", "Peranmay", "Old", "Manjummel Boys"],
-        "Movies where the heroine dies": ["Raja Rani", "The Amazing Spider-man", "Ghajini", "Vaaranam Aayiram"]
-    }
-    const _group3 = {
-        "Rajinikanth Movies": ["Baasha", "Muthu", "Padayappa", "Enthiran"],
-        "Kamal Haasan Movies": ["Vikram", "Virumandi", "Vishwaroopam", "Hey Ram"],
-        "Telugu Blockbusters": ["Baahubali", "RRR", "Pokiri", "Magadheera"],
-        "Malayalam Classics": ["Vandanam", "Kireedam", "Maheshinte Prathikaram", "Big B"],
-    }
-
-    const _group4 = {
-        "Kannada Hits": ["Kirik Party", "Ulidavaru Kandanthe", "Mungaru Male", "Upendra"],
-        "Tamil Classics": ["Nayakan", "Mouna Ragam", "Alaipayuthey", "Anbe Sivam"],
-        "Telugu Cult Favorites": ["Arjun Reddy", "Pellichoopulu", "Jalsa", "Godavari"],
-        "Malayalam Gems": ["Bangalore Days", "Premam", "Angamaly Diaries", "Kumbalangi Nights"],
-    }
-
-    const _group5 = {
-        "Malayalam Superhits": ["Kumbalangi Nights", "Maheshinte Prathikaaram", "Jallikkattu", "Angamaly Diaries"],
-        "Telugu Cult Movies": ["Pelli Choopulu", "C/o Kancharapalem", "Ee Nagaraniki Emaindi", "Fida"],
-        "Tamil Classics": ["Virumaandi", "Kannathil Muthamittal", "Anniyan", "Paruthiveeran"],
-        "Bollywood Classics": ["Dilwale Dulhania Le Jayenge", "3 Idiots", "Lagaan", "Hera Pheri"]
-    }
-
-
-        const transformAndShuffleGroup = (group: Group) => {
-        const transformedGroup = Object.entries(group).flatMap(([category, labels]) =>
-            labels.map(label => ({ category, label }))
-        )
-        return shuffleArray(transformedGroup);
-    }
-
-    const shuffleArray = (array: any[]) => {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]]
+    const day = '18-05-2024'
+    useEffect(() => {
+        if(day){
+            getGroup(day)
+                .then((res: any) => {
+                    console.log(res)
+                    setGroup(res)
+                })
+                .catch(
+                    error => {
+                        console.error("Error fetching group information:", error)
+                    })
+                .finally(() => {
+                        setLoading(false)
+                    }
+                )
         }
-        return array
-    }
+    }, [day])
 
-    const [group, setGroup] = useState(transformAndShuffleGroup(_group5))
-    const [selection, setSelection] = useState<SelectionItem[]>([])
-    const [log, setLog] = useState('')
-    const [correctAnswers, setCorrectAnswers] = useState<SelectionItem[][]>([])
+    const [loading, setLoading] = useState<boolean>(true)
+    const [group, setGroup] = useState<Item[]>([])
+    const [selection, setSelection] = useState<Item[]>([])
+    const [correctAnswers, setCorrectAnswers] = useState<Item[][]>([])
     const [chances, setChances] = useState(4)
 
     const handleTileClick = (category: string, label: string) => {
@@ -84,27 +54,43 @@ export default function Home() {
         })
     }
 
-    const verifySelectionItemsCategory = () => {
+    useEffect(() => {
+        if (chances <= 0){
+            const remainingAnswers = extractRemainingItemsFromGroup()
+            setCorrectAnswers(prevCorrectAnswers => [...prevCorrectAnswers, ...remainingAnswers])
+        }
+    }, [chances])
+
+    const extractRemainingItemsFromGroup = () => {
+        const remainingItems: { [key: number]: Item[] } = {}
+
+        group.forEach((item: any) => {
+            const itemCategory = item.category
+            if (!remainingItems[itemCategory]) {
+                remainingItems[itemCategory] = []
+            }
+            remainingItems[itemCategory].push(item)
+        })
+        return Object.values(remainingItems)
+    }
+
+    const verifyItemsCategory = () => {
         if (selection.length < 4) return false
         const firstCategory = selection[0].category
         return selection.every(item => item.category === firstCategory)
     }
 
     const handleSubmit = () => {
-        if (chances > 0 && verifySelectionItemsCategory()) {
-            const category = selection[0].category;
-            const labels = selection.map(item => item.label).join(", ");
-            setLog(`${category} - ${labels}`)
+        if (chances > 0 && verifyItemsCategory()) {
             // Remove selected items from group
             const updatedGroup = group.filter(
-                groupItem => !selection.some(selectionItem => selectionItem.label === groupItem.label)
+                groupItem => !selection.some(Item => Item.label === groupItem.label)
             )
             setGroup(updatedGroup)
             setCorrectAnswers(prevCorrectAnswers => [...prevCorrectAnswers, selection])
             // Clear selection
             setSelection([])
         } else {
-            setLog("Selected items are from different categories.")
             setChances(chances - 1)
         }
     }
@@ -132,30 +118,58 @@ export default function Home() {
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-between p-24">
-            <div className="absolute top-[100px] w-[390px] h-[400px]">
-                {renderAnswerTiles()}
-                <div className="grid grid-cols-4 gap-4">
-                    {group.map(({category, label}, index) => (
-                        <Tile
-                            key={`${category}-${index}`}
-                            label={label}
-                            category={category}
-                            selected={selection.some(selectionItem => selectionItem.label === label)}
-                            onClick={() => handleTileClick(category, label)}
-                        />
-                    ))}
-                </div>
-                {
-                    chances > 0 ? (
-                        <p>{`Chances left: ${chances}`}</p>
-                    ) : (
-                        <p className=" w-full flex justify-center text-red-600">Game over</p>
-                    )
-                }
-                <div className="w-full flex justify-center mt-1">
-                    <SubmitButton onClick={handleSubmit} disabled={chances <= 0}/>
-                </div>
+            <div className="absolute top-4 flex">
+                <Image
+                    src={'/clapperboard.svg'}
+                    alt={''} width={50}
+                    height={50} />
             </div>
+            {
+                loading ? (
+                    <>
+                        <Loading/>
+                    </>
+                ) : (
+                    <div className="absolute top-[100px] w-[390px] h-[400px]">
+                        {
+                            chances <= 0 ? (
+                                renderAnswerTiles()
+                            ) : (
+                                <>
+                                    {renderAnswerTiles()}
+                                    <div className="grid grid-cols-4 gap-4">
+                                        {group.map(({category, label}, index) => (
+                                            <Tile
+                                                key={`${category}-${index}`}
+                                                label={label}
+                                                category={category}
+                                                selected={selection.some(Item => Item.label === label)}
+                                                onClick={() => handleTileClick(category, label)}
+                                            />
+                                        ))}
+                                    </div>
+                                </>
+                            )
+                        }
+
+                        <div className="flex">
+                            {
+                                chances > 0 ? (
+                                    <p>{`Chances left: ${chances}`}</p>
+                                ) : (
+                                    <p className=" w-full flex justify-center text-red-600">Game over</p>
+                                )
+                            }
+                            <div className="absolute right-0">
+                                <ClearButton onClick={() => setSelection([])}/>
+                            </div>
+                        </div>
+                        <div className="w-full flex justify-center mt-1">
+                            <SubmitButton onClick={handleSubmit} disabled={chances <= 0}/>
+                        </div>
+                    </div>
+                )
+            }
         </main>
     )
 }
