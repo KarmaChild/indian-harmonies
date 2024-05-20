@@ -1,12 +1,14 @@
 'use client'
 import { Tile } from "@/app/components/Tile/Tile"
 import { SubmitButton } from "@/app/components/Buttons/Submit/SubmitButton"
-import {useEffect, useState} from "react"
+import React, {useEffect, useState} from "react"
 import { AnswerTile } from "@/app/components/Tile/AnswerTile"
 import {ClearButton} from "@/app/components/Buttons/Clear/ClearButton"
 import {getGroup} from "@/api/get-group"
 import Loading from "@/app/loading";
 import Image from "next/image";
+import {useWindowSize} from "react-use";
+import Confetti from "react-confetti";
 
 interface Item {
     category: string
@@ -36,6 +38,7 @@ export default function Home() {
         }
     }, [day])
 
+    const { width, height } = useWindowSize()
     const [loading, setLoading] = useState<boolean>(true)
     const [group, setGroup] = useState<Item[]>([])
     const [selection, setSelection] = useState<Item[]>([])
@@ -116,6 +119,15 @@ export default function Home() {
         )
     }
 
+    const renderConfetti = () => {
+        return (
+            <Confetti
+                width={width}
+                height={height}
+            />
+        )
+    }
+
     return (
         <main className="flex min-h-screen flex-col items-center justify-between p-24">
             <div className="absolute top-4 flex">
@@ -168,6 +180,11 @@ export default function Home() {
                             <SubmitButton onClick={handleSubmit} disabled={chances <= 0}/>
                         </div>
                     </div>
+                )
+            }
+            {
+                chances > 0 && correctAnswers.length == 4 && (
+                    renderConfetti()
                 )
             }
         </main>
