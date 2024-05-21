@@ -1,13 +1,13 @@
 'use client'
 import { Tile } from "@/app/components/Tile/Tile"
 import { SubmitButton } from "@/app/components/Buttons/Submit/SubmitButton"
-import React, {useEffect, useState} from "react"
+import React, { useEffect, useState } from "react"
 import { AnswerTile } from "@/app/components/Tile/AnswerTile"
-import {ClearButton} from "@/app/components/Buttons/Clear/ClearButton"
-import {getGroup} from "@/api/get-group"
+import { ClearButton } from "@/app/components/Buttons/Clear/ClearButton"
+import { getGroup } from "@/api/get-group"
 import Loading from "@/app/loading";
 import Image from "next/image";
-import {useWindowSize} from "react-use";
+import { useWindowSize } from "react-use";
 import Confetti from "react-confetti";
 
 interface Item {
@@ -19,9 +19,9 @@ const ANSWER_COLOR = ['bg-answer-green', 'bg-answer-orange', 'bg-answer-blue', '
 
 export default function Home() {
 
-    const day = '18-05-2024'
+    const day = '4'
     useEffect(() => {
-        if(day){
+        if (day) {
             getGroup(day)
                 .then((res: any) => {
                     console.log(res)
@@ -44,6 +44,8 @@ export default function Home() {
     const [selection, setSelection] = useState<Item[]>([])
     const [correctAnswers, setCorrectAnswers] = useState<Item[][]>([])
     const [chances, setChances] = useState(4)
+    const [guesses, setGuesses] = useState<Item[][]>([])
+    const [alertWrongTiles, setAlertWrongTiles] = useState<string[]>([])
 
     const handleTileClick = (category: string, label: string) => {
         setSelection(prevSelection => {
@@ -54,11 +56,12 @@ export default function Home() {
                 return [...prevSelection, { category, label }]
             }
             return prevSelection
-        })
+        });
+        setAlertWrongTiles([])
     }
 
     useEffect(() => {
-        if (chances <= 0){
+        if (chances <= 0) {
             const remainingAnswers = extractRemainingItemsFromGroup()
             setCorrectAnswers(prevCorrectAnswers => [...prevCorrectAnswers, ...remainingAnswers])
         }
@@ -77,24 +80,30 @@ export default function Home() {
         return Object.values(remainingItems)
     }
 
-    const verifyItemsCategory = () => {
+    const itemsAreCorrect = () => {
         if (selection.length < 4) return false
         const firstCategory = selection[0].category
         return selection.every(item => item.category === firstCategory)
     }
 
     const handleSubmit = () => {
-        if (chances > 0 && verifyItemsCategory()) {
-            // Remove selected items from group
-            const updatedGroup = group.filter(
-                groupItem => !selection.some(Item => Item.label === groupItem.label)
-            )
-            setGroup(updatedGroup)
-            setCorrectAnswers(prevCorrectAnswers => [...prevCorrectAnswers, selection])
-            // Clear selection
-            setSelection([])
-        } else {
-            setChances(chances - 1)
+        if (chances > 0) {
+            if (itemsAreCorrect()) {
+                const updatedGroup = group.filter(
+                    groupItem => !selection.some(item => item.label === groupItem.label)
+                )
+                setGroup(updatedGroup)
+                setCorrectAnswers(prevCorrectAnswers => [...prevCorrectAnswers, selection])
+                setGuesses(prevGuesses => [...prevGuesses, selection])
+                setSelection([])
+                setAlertWrongTiles([])
+            } else if (guesses.some(guess => JSON.stringify(guess) === JSON.stringify(selection))) {
+                setAlertWrongTiles(selection.map(item => item.label))
+            } else {
+                setGuesses(prevGuesses => [...prevGuesses, selection])
+                setChances(chances - 1)
+                setAlertWrongTiles(selection.map(item => item.label))
+            }
         }
     }
 
@@ -139,10 +148,10 @@ export default function Home() {
             {
                 loading ? (
                     <>
-                        <Loading/>
+                        <Loading />
                     </>
                 ) : (
-                    <div className="absolute top-[100px] w-[390px] h-[400px]">
+                    <div className="absolute top-[100px] w-[390px] h-[400px] mr-1">
                         {
                             chances <= 0 ? (
                                 renderAnswerTiles()
@@ -150,13 +159,14 @@ export default function Home() {
                                 <>
                                     {renderAnswerTiles()}
                                     <div className="grid grid-cols-4 gap-4">
-                                        {group.map(({category, label}, index) => (
+                                        {group.map(({ category, label }, index) => (
                                             <Tile
                                                 key={`${category}-${index}`}
                                                 label={label}
                                                 category={category}
-                                                selected={selection.some(Item => Item.label === label)}
+                                                selected={selection.some(item => item.label === label)}
                                                 onClick={() => handleTileClick(category, label)}
+                                                alertWrong={alertWrongTiles.includes(label)}  // Set alertWrong based on the state
                                             />
                                         ))}
                                     </div>
@@ -169,15 +179,15 @@ export default function Home() {
                                 chances > 0 ? (
                                     <p>{`Chances left: ${chances}`}</p>
                                 ) : (
-                                    <p className=" w-full flex justify-center text-red-600">Game over</p>
+                                    <p className="w-full flex justify-center text-red-600">Game over</p>
                                 )
                             }
                             <div className="absolute right-0">
-                                <ClearButton onClick={() => setSelection([])}/>
+                                <ClearButton onClick={() => setSelection([])} />
                             </div>
                         </div>
                         <div className="w-full flex justify-center mt-1">
-                            <SubmitButton onClick={handleSubmit} disabled={chances <= 0}/>
+                            <SubmitButton onClick={handleSubmit} disabled={chances <= 0} />
                         </div>
                     </div>
                 )
