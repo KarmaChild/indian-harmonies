@@ -5,11 +5,11 @@ import React, { useEffect, useState } from "react"
 import { AnswerTile } from "@/app/components/Tile/AnswerTile"
 import { ClearButton } from "@/app/components/Buttons/Clear/ClearButton"
 import { getGroup } from "@/api/get-group"
-import Loading from "@/app/loading";
-import Image from "next/image";
-import { useWindowSize } from "react-use";
-import Confetti from "react-confetti";
-
+import Loading from "@/app/loading"
+import Image from "next/image"
+import { useWindowSize } from "react-use"
+import Confetti from "react-confetti"
+import toast, {Toaster} from "react-hot-toast"
 interface Item {
     category: string
     label: string
@@ -19,7 +19,7 @@ const ANSWER_COLOR = ['bg-answer-green', 'bg-answer-orange', 'bg-answer-blue', '
 
 export default function Home() {
 
-    const day = '4'
+    const day = '2'
     useEffect(() => {
         if (day) {
             getGroup(day)
@@ -56,7 +56,7 @@ export default function Home() {
                 return [...prevSelection, { category, label }]
             }
             return prevSelection
-        });
+        })
         setAlertWrongTiles([])
     }
 
@@ -86,6 +86,13 @@ export default function Home() {
         return selection.every(item => item.category === firstCategory)
     }
 
+    const renderToast = (message: string) => {
+        toast(message, {
+            duration: 1000,
+            position: 'top-center',
+        })
+    }
+
     const handleSubmit = () => {
         if (chances > 0) {
             if (itemsAreCorrect()) {
@@ -98,6 +105,7 @@ export default function Home() {
                 setSelection([])
                 setAlertWrongTiles([])
             } else if (guesses.some(guess => JSON.stringify(guess) === JSON.stringify(selection))) {
+                renderToast("Already Guessed!")
                 setAlertWrongTiles(selection.map(item => item.label))
             } else {
                 setGuesses(prevGuesses => [...prevGuesses, selection])
@@ -197,6 +205,7 @@ export default function Home() {
                     renderConfetti()
                 )
             }
+            <Toaster />
         </main>
     )
 }
