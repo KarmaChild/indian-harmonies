@@ -96,7 +96,10 @@ export default function Home() {
 
     const handleSubmit = () => {
         if (chances > 0) {
-            if (itemsAreCorrect()) {
+            if (selection.length < 4){
+                renderToast("Select four items!")
+            }
+            else if (itemsAreCorrect()) {
                 const updatedGroup = group.filter(
                     groupItem => !selection.some(item => item.label === groupItem.label)
                 )
@@ -195,7 +198,7 @@ export default function Home() {
                                                 category={category}
                                                 selected={selection.some(item => item.label === label)}
                                                 onClick={() => handleTileClick(category, label)}
-                                                alertWrong={alertWrongTiles.includes(label)}  // Set alertWrong based on the state
+                                                alertWrong={alertWrongTiles.includes(label)}
                                             />
                                         ))}
                                     </div>
