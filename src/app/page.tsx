@@ -10,16 +10,24 @@ import Image from "next/image"
 import { useWindowSize } from "react-use"
 import Confetti from "react-confetti"
 import toast, {Toaster} from "react-hot-toast"
+import {ANSWER_COLOR} from "@/app/constants";
+
 interface Item {
     category: string
     label: string
 }
 
-const ANSWER_COLOR = ['bg-answer-green', 'bg-answer-orange', 'bg-answer-blue', 'bg-answer-red']
-
 export default function Home() {
-
     const day = '2'
+    const { width, height } = useWindowSize()
+    const [loading, setLoading] = useState<boolean>(true)
+    const [group, setGroup] = useState<Item[]>([])
+    const [selection, setSelection] = useState<Item[]>([])
+    const [correctAnswers, setCorrectAnswers] = useState<Item[][]>([])
+    const [chances, setChances] = useState(4)
+    const [guesses, setGuesses] = useState<Item[][]>([])
+    const [alertWrongTiles, setAlertWrongTiles] = useState<string[]>([])
+
     useEffect(() => {
         if (day) {
             getGroup(day)
@@ -38,14 +46,12 @@ export default function Home() {
         }
     }, [day])
 
-    const { width, height } = useWindowSize()
-    const [loading, setLoading] = useState<boolean>(true)
-    const [group, setGroup] = useState<Item[]>([])
-    const [selection, setSelection] = useState<Item[]>([])
-    const [correctAnswers, setCorrectAnswers] = useState<Item[][]>([])
-    const [chances, setChances] = useState(4)
-    const [guesses, setGuesses] = useState<Item[][]>([])
-    const [alertWrongTiles, setAlertWrongTiles] = useState<string[]>([])
+    useEffect(() => {
+        if (chances <= 0) {
+            const remainingAnswers = extractRemainingItemsFromGroup()
+            setCorrectAnswers(prevCorrectAnswers => [...prevCorrectAnswers, ...remainingAnswers])
+        }
+    }, [chances])
 
     const handleTileClick = (category: string, label: string) => {
         setSelection(prevSelection => {
@@ -59,13 +65,6 @@ export default function Home() {
         })
         setAlertWrongTiles([])
     }
-
-    useEffect(() => {
-        if (chances <= 0) {
-            const remainingAnswers = extractRemainingItemsFromGroup()
-            setCorrectAnswers(prevCorrectAnswers => [...prevCorrectAnswers, ...remainingAnswers])
-        }
-    }, [chances])
 
     const extractRemainingItemsFromGroup = () => {
         const remainingItems: { [key: number]: Item[] } = {}
@@ -86,11 +85,13 @@ export default function Home() {
         return selection.every(item => item.category === firstCategory)
     }
 
-    const renderToast = (message: string) => {
-        toast(message, {
-            duration: 1000,
-            position: 'top-center',
-        })
+    const arraysEqualIgnoringOrder = (a: Item[], b: Item[]): boolean => {
+        if (a.length !== b.length) return false
+
+        const labelsA = Array.from(a.map(item => item.label));
+        const labelsB = Array.from(b.map(item => item.label));
+
+        return labelsA.every(label => labelsB.includes(label))
     }
 
     const handleSubmit = () => {
@@ -104,15 +105,21 @@ export default function Home() {
                 setGuesses(prevGuesses => [...prevGuesses, selection])
                 setSelection([])
                 setAlertWrongTiles([])
-            } else if (guesses.some(guess => JSON.stringify(guess) === JSON.stringify(selection))) {
+            } else if (guesses.some(guess => arraysEqualIgnoringOrder(guess, selection))) {
                 renderToast("Already Guessed!")
                 setAlertWrongTiles(selection.map(item => item.label))
             } else {
+                renderToast("Wrong items!", 'error')
                 setGuesses(prevGuesses => [...prevGuesses, selection])
                 setChances(chances - 1)
                 setAlertWrongTiles(selection.map(item => item.label))
             }
         }
+    }
+
+    const handleClear = () => {
+        setSelection([])
+        setAlertWrongTiles([])
     }
 
     const renderAnswerTiles = () => {
@@ -134,6 +141,20 @@ export default function Home() {
             )
 
         )
+    }
+
+    const renderToast = (message: string, type?: string) => {
+        if (type === "error") {
+            toast.error(message, {
+                duration: 1000,
+                position: 'top-center',
+            })
+        } else {
+            toast(message, {
+                duration: 1000,
+                position: 'top-center',
+            })
+        }
     }
 
     const renderConfetti = () => {
@@ -191,7 +212,7 @@ export default function Home() {
                                 )
                             }
                             <div className="absolute right-0">
-                                <ClearButton onClick={() => setSelection([])} />
+                                <ClearButton onClick={handleClear} />
                             </div>
                         </div>
                         <div className="w-full flex justify-center mt-1">

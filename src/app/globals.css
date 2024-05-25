@@ -30,8 +30,16 @@ body {
   }
 }
 
+.hover-bg-grey {
+  @apply transition duration-100 ease-in-out;
+}
+
 .hover-bg-grey:hover {
   background-color: #EEEEEE;
+}
+
+.hover-bg-ios-blue {
+  @apply transition duration-200 ease-in-out;
 }
 
 .hover-bg-ios-blue:hover {
@@ -112,7 +120,7 @@ body {
 }
 
 .loading-animation {
-  animation: shimmer 1s infinite linear;
+  animation: shimmer 1.5s infinite linear;
   background-image: linear-gradient(to right, #ddd 0%, #ececec 100%);
   background-size: 200% 100%;
 }

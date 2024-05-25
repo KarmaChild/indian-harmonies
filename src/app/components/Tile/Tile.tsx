@@ -18,6 +18,7 @@ export const Tile:React.FC<Tile> = ({ label, selected, onClick, alertWrong}) => 
         ${selected ? 'bg-gray-400' : 'bg-white hover-bg-grey'} 
         w-[90px] h-[90px] flex items-center justify-center rounded
         ${alertWrong && 'border-2 border-red-600'}
+        transition duration-200 ease-in-out
         `}
                 onClick={onClick}
         >
