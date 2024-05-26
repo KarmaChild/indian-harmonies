@@ -226,7 +226,7 @@ export default function Home() {
                     height={50}
                 />
                 <Image
-                    className="absolute top-3.5 left-[200px]"
+                    className="absolute top-3.5 left-[181px] sm:left-[200px]"
                     src={'/help.svg'}
                     alt={'help'}
                     width={25}
@@ -242,7 +242,7 @@ export default function Home() {
             }
             {
                 state === states.LOADED && (
-                    <div className="absolute top-[100px] w-[390px] h-[400px] mr-1">
+                    <div className="absolute top-[100px] w-[360px] sm:w-[390px] h-[400px] mr-1">
                         <Instructions isOpen={instructionsOpen} onClose={handleCloseInstructions}/>
                         {
                             chances <= 0 ? (
@@ -250,7 +250,7 @@ export default function Home() {
                             ) : (
                                 <>
                                     {renderAnswerTiles()}
-                                    <div className="grid grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-4 gap-3 sm:gap-4">
                                         {group.map(({category, label}, index) => (
                                             <Tile
                                                 key={`${category}-${index}`}
