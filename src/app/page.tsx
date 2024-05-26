@@ -11,6 +11,9 @@ import { useWindowSize } from "react-use"
 import Confetti from "react-confetti"
 import toast, {Toaster} from "react-hot-toast"
 import {ANSWER_COLOR} from "@/app/constants";
+import {getFormattedDate} from "@/utils/DateTime";
+import {addDateToLocalStorage, dateIsDone} from "@/utils/LocalStorage";
+import {Instructions} from "@/app/components/Instructions/Instructions";
 
 interface Item {
     category: string
@@ -18,8 +21,9 @@ interface Item {
 }
 
 export default function Home() {
-    const day = '2'
+    const day = getFormattedDate()
     const { width, height } = useWindowSize()
+    const [instructionsOpen, setInstructionsOpen] = useState(true)
     const [loading, setLoading] = useState<boolean>(true)
     const [group, setGroup] = useState<Item[]>([])
     const [selection, setSelection] = useState<Item[]>([])
@@ -50,8 +54,13 @@ export default function Home() {
         if (chances <= 0) {
             const remainingAnswers = extractRemainingItemsFromGroup()
             setCorrectAnswers(prevCorrectAnswers => [...prevCorrectAnswers, ...remainingAnswers])
+            addDateToLocalStorage(day)
         }
     }, [chances])
+
+    const handleCloseInstructions = () => {
+        setInstructionsOpen(false)
+    }
 
     const handleTileClick = (category: string, label: string) => {
         setSelection(prevSelection => {
@@ -169,6 +178,11 @@ export default function Home() {
         )
     }
 
+    const winGame = () => {
+        renderConfetti()
+        addDateToLocalStorage(day)
+    }
+
     return (
         <main className="flex min-h-screen flex-col items-center justify-between p-24">
             <div className="absolute top-4 flex">
@@ -184,8 +198,9 @@ export default function Home() {
                     </>
                 ) : (
                     <div className="absolute top-[100px] w-[390px] h-[400px] mr-1">
+                        <Instructions isOpen={instructionsOpen} onClose={handleCloseInstructions}/>
                         {
-                            chances <= 0 ? (
+                            chances <= 0  ? (
                                 renderAnswerTiles()
                             ) : (
                                 <>
