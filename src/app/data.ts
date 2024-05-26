@@ -31,3 +31,17 @@ const _group5 = {
     "Tamil Classics": ["Virumaandi", "Kannathil Muthamittal", "Anniyan", "Paruthiveeran"],
     "Bollywood Classics": ["Dilwale Dulhania Le Jayenge", "3 Idiots", "Lagaan", "Hera Pheri"]
 }
+
+const _group6 = {
+    "Tamil Movies with Vijay Sethupathi": ["96", "Vikram Vedha", "Super Deluxe", "Soodhu Kavvum"],
+    "Popular Malayalam Remakes": ["Chandramukhi", "Kaavalan", "Hera Pheri", "Billu Barber"],
+    "Movies released in 2021": ["Drishyam 2", "Master", "Jai Bhim", "Joji"],
+    "Small budget Hits": ["Kaaka Muttai", "Angamaly Diaries", "Queen", "Cuckoo"]
+}
+
+const _group7 = {
+    "Horrible Movies With Ultra Hit Songs": ["Maari 2", "3", "Oru Adaar Love", "Master"],
+    "Serial Killer Movies": ["Ratchasan", "Vettaiyaadu Vilaiyaadu", "Eeram", "Psycho"],
+    "Tamil Movies released in 2022": ["Beast", "Valimai", "Thiruchitrambalam", "Love Today"],
+    "Anti-Hero Movies": ["Lucifer", "Mankatha", "Anniyan", "Pudhupettai"]
+}

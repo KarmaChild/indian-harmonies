@@ -10,10 +10,10 @@ import Image from "next/image"
 import { useWindowSize } from "react-use"
 import Confetti from "react-confetti"
 import toast, {Toaster} from "react-hot-toast"
-import {ANSWER_COLOR} from "@/app/constants";
-import {getFormattedDate} from "@/utils/DateTime";
-import {addDateToLocalStorage, dateIsDone} from "@/utils/LocalStorage";
-import {Instructions} from "@/app/components/Instructions/Instructions";
+import {ANSWER_COLOR} from "@/app/constants"
+import {getFormattedDate} from "@/utils/DateTime"
+import {addDateToLocalStorage, dateIsDone} from "@/utils/LocalStorage"
+import {Instructions} from "@/app/components/Instructions/Instructions"
 
 interface Item {
     category: string
@@ -38,16 +38,12 @@ export default function Home() {
     const [chances, setChances] = useState(4)
     const [guesses, setGuesses] = useState<Item[][]>([])
     const [alertWrongTiles, setAlertWrongTiles] = useState<string[]>([])
-
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            setState(dateIsDone(day) ? states.COMPLETED : states.LOADING)
-        }
-    }, [day])
+    const [gameWon, setGameWon] = useState<boolean>(false)
 
 
     useEffect(() => {
         if (day) {
+            setState(states.LOADING)
             getGroup(day)
                 .then((res: any) => {
                     setGroup(res)
@@ -57,7 +53,7 @@ export default function Home() {
                         console.error("Error fetching group information:", error)
                     })
                 .finally(() => {
-                        setState(states.LOADED)
+                    setState(dateIsDone(day) ? states.COMPLETED : states.LOADED)
                     }
                 )
         }
@@ -110,8 +106,8 @@ export default function Home() {
     const arraysEqualIgnoringOrder = (a: Item[], b: Item[]): boolean => {
         if (a.length !== b.length) return false
 
-        const labelsA = Array.from(a.map(item => item.label));
-        const labelsB = Array.from(b.map(item => item.label));
+        const labelsA = Array.from(a.map(item => item.label))
+        const labelsB = Array.from(b.map(item => item.label))
 
         return labelsA.every(label => labelsB.includes(label))
     }
@@ -207,7 +203,11 @@ export default function Home() {
     }
 
     const winGame = () => {
-        addDateToLocalStorage(day)
+        if (!gameWon) {
+            renderToast("Congrats you won!")
+            setGameWon(true)
+            addDateToLocalStorage(day)
+        }
         return (
             <Confetti
                 width={width}
@@ -218,20 +218,21 @@ export default function Home() {
 
     return (
         <main className="flex min-h-screen flex-col items-center justify-between p-24">
-            <Image
-                className="absolute top-4 flex"
-                src={'/clapperboard.svg'}
-                alt={'clapperboard'}
-                width={50}
-                height={50}
-            />
-            <Image
-                className="absolute top-7 right-[440px] flex"
-                src={'/help.svg'}
-                alt={'help'}
-                width={25}
-                height={25}
-            />
+            <div className="absolute top-4 flex">
+                <Image
+                    src={'/clapperboard.svg'}
+                    alt={'clapperboard'}
+                    width={50}
+                    height={50}
+                />
+                <Image
+                    className="absolute top-3.5 left-[200px]"
+                    src={'/help.svg'}
+                    alt={'help'}
+                    width={25}
+                    height={25}
+                />
+            </div>
             {
                 state === states.LOADING && (
                     <>
@@ -273,9 +274,13 @@ export default function Home() {
                                             <ClearButton onClick={handleClear}/>
                                         </div>
                                     </div>
-                                    <div className="w-full flex justify-center mt-1">
-                                        <SubmitButton onClick={handleSubmit} disabled={chances <= 0}/>
-                                    </div>
+                                    {
+                                        !gameWon ? (
+                                            <div className="w-full flex justify-center mt-1">
+                                                <SubmitButton onClick={handleSubmit} disabled={chances <= 0}/>
+                                            </div>
+                                        ) : <></>
+                                    }
                                 </>
                             )
                         }
