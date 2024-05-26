@@ -20,11 +20,18 @@ interface Item {
     label: string
 }
 
+enum states {
+    LOADING = 'loading',
+    LOADED = 'loaded',
+    COMPLETED = 'completed'
+}
+
 export default function Home() {
     const day = getFormattedDate()
     const { width, height } = useWindowSize()
+    const [state,setState] =
+        useState<states.LOADING | states.LOADED | states.COMPLETED | null>(states.LOADING)
     const [instructionsOpen, setInstructionsOpen] = useState(true)
-    const [loading, setLoading] = useState<boolean>(true)
     const [group, setGroup] = useState<Item[]>([])
     const [selection, setSelection] = useState<Item[]>([])
     const [correctAnswers, setCorrectAnswers] = useState<Item[][]>([])
@@ -33,10 +40,16 @@ export default function Home() {
     const [alertWrongTiles, setAlertWrongTiles] = useState<string[]>([])
 
     useEffect(() => {
+        if (typeof window !== 'undefined') {
+            setState(dateIsDone(day) ? states.COMPLETED : states.LOADING)
+        }
+    }, [day])
+
+
+    useEffect(() => {
         if (day) {
             getGroup(day)
                 .then((res: any) => {
-                    console.log(res)
                     setGroup(res)
                 })
                 .catch(
@@ -44,7 +57,7 @@ export default function Home() {
                         console.error("Error fetching group information:", error)
                     })
                 .finally(() => {
-                        setLoading(false)
+                        setState(states.LOADED)
                     }
                 )
         }
@@ -151,7 +164,31 @@ export default function Home() {
             ) : (
                 <></>
             )
+        )
+    }
 
+    const renderAnswerTilesWhenDayIsAlreadyDone = () => {
+        const groupedItems: { [category: string]: Item[] } = {}
+        group.forEach(item => {
+            if (!groupedItems[item.category]) {
+                groupedItems[item.category] = []
+            }
+            groupedItems[item.category].push(item)
+        })
+
+        const groupedItemsArray = Object.values(groupedItems)
+
+        return (
+            <div>
+                {groupedItemsArray.map((answerGroup, index) => (
+                    <AnswerTile
+                        key={index}
+                        category={answerGroup[0].category}
+                        items={answerGroup.map(item => item.label)}
+                        color={ANSWER_COLOR[index % ANSWER_COLOR.length]}
+                    />
+                ))}
+            </div>
         )
     }
 
@@ -169,7 +206,8 @@ export default function Home() {
         }
     }
 
-    const renderConfetti = () => {
+    const winGame = () => {
+        addDateToLocalStorage(day)
         return (
             <Confetti
                 width={width}
@@ -178,35 +216,41 @@ export default function Home() {
         )
     }
 
-    const winGame = () => {
-        renderConfetti()
-        addDateToLocalStorage(day)
-    }
-
     return (
         <main className="flex min-h-screen flex-col items-center justify-between p-24">
-            <div className="absolute top-4 flex">
-                <Image
-                    src={'/clapperboard.svg'}
-                    alt={''} width={50}
-                    height={50} />
-            </div>
+            <Image
+                className="absolute top-4 flex"
+                src={'/clapperboard.svg'}
+                alt={'clapperboard'}
+                width={50}
+                height={50}
+            />
+            <Image
+                className="absolute top-7 right-[440px] flex"
+                src={'/help.svg'}
+                alt={'help'}
+                width={25}
+                height={25}
+            />
             {
-                loading ? (
+                state === states.LOADING && (
                     <>
                         <Loading />
                     </>
-                ) : (
+                )
+            }
+            {
+                state === states.LOADED && (
                     <div className="absolute top-[100px] w-[390px] h-[400px] mr-1">
                         <Instructions isOpen={instructionsOpen} onClose={handleCloseInstructions}/>
                         {
-                            chances <= 0  ? (
+                            chances <= 0 ? (
                                 renderAnswerTiles()
                             ) : (
                                 <>
                                     {renderAnswerTiles()}
                                     <div className="grid grid-cols-4 gap-4">
-                                        {group.map(({ category, label }, index) => (
+                                        {group.map(({category, label}, index) => (
                                             <Tile
                                                 key={`${category}-${index}`}
                                                 label={label}
@@ -217,34 +261,38 @@ export default function Home() {
                                             />
                                         ))}
                                     </div>
+                                    <div className="flex">
+                                        {
+                                            chances > 0 ? (
+                                                <p>{`Chances left: ${chances}`}</p>
+                                            ) : (
+                                                <p className="w-full flex justify-center text-red-600">Game over</p>
+                                            )
+                                        }
+                                        <div className="absolute right-0">
+                                            <ClearButton onClick={handleClear}/>
+                                        </div>
+                                    </div>
+                                    <div className="w-full flex justify-center mt-1">
+                                        <SubmitButton onClick={handleSubmit} disabled={chances <= 0}/>
+                                    </div>
                                 </>
                             )
                         }
-
-                        <div className="flex">
-                            {
-                                chances > 0 ? (
-                                    <p>{`Chances left: ${chances}`}</p>
-                                ) : (
-                                    <p className="w-full flex justify-center text-red-600">Game over</p>
-                                )
-                            }
-                            <div className="absolute right-0">
-                                <ClearButton onClick={handleClear} />
-                            </div>
-                        </div>
-                        <div className="w-full flex justify-center mt-1">
-                            <SubmitButton onClick={handleSubmit} disabled={chances <= 0} />
-                        </div>
                     </div>
                 )
             }
             {
-                chances > 0 && correctAnswers.length == 4 && (
-                    renderConfetti()
+                state === states.COMPLETED && (
+                    renderAnswerTilesWhenDayIsAlreadyDone()
                 )
             }
-            <Toaster />
+            {
+                chances > 0 && correctAnswers.length == 4 && (
+                    winGame()
+                )
+            }
+            <Toaster/>
         </main>
     )
 }
