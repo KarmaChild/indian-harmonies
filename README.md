@@ -46,3 +46,6 @@ Usage
 
 Enjoy playing the Movie Match Game!
 
+### Credits
+
+Icons by [Lucide.dev](https://lucide.dev/)
