@@ -42,7 +42,8 @@ export const Instructions:React.FC<InstructionsProps> = ({isOpen, onClose}) => {
                 <p className="absolute top-[33px] font-regular text-12 text-black">
                     Find four squares with a common theme. All are related to movies!
                 </p>
-                <img
+                <Image
+                    unoptimized={true}
                     className="absolute top-[85px] w-full justify-center"
                     src={'/example.png'}
                     alt={'example'}
