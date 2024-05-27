@@ -1,4 +1,4 @@
-Movie Match Game
+MatchFlix - Movie Matching Game
 ================
 
 A 4x4 grid game where players select groups of four similar Indian movies to win. Built with Next.js, Firebase, and Tailwind CSS.
