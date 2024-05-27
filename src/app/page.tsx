@@ -226,11 +226,12 @@ export default function Home() {
                     height={50}
                 />
                 <Image
-                    className="absolute top-3.5 left-[181px] sm:left-[200px]"
+                    className="absolute top-3.5 left-[181px] sm:left-[200px] cursor-pointer"
                     src={'/help.svg'}
                     alt={'help'}
                     width={25}
                     height={25}
+                    onClick={() =>setInstructionsOpen(true)}
                 />
             </div>
             {
