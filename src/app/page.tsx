@@ -11,9 +11,9 @@ import { useWindowSize } from "react-use"
 import Confetti from "react-confetti"
 import toast, {Toaster} from "react-hot-toast"
 import {ANSWER_COLOR} from "@/app/constants"
-import {getFormattedDate} from "@/utils/DateTime"
-import {addDateToLocalStorage, dateIsDone} from "@/utils/LocalStorage"
 import {Instructions} from "@/app/components/Instructions/Instructions"
+import {PlayAgain} from "@/app/components/Buttons/PlayAgain/PlayAgainButton";
+import {dateIsDone} from "@/utils/LocalStorage";
 
 interface Item {
     category: string
@@ -27,7 +27,7 @@ enum states {
 }
 
 export default function Home() {
-    const day = getFormattedDate()
+    const [day, setDay] = useState(Math.floor(Math.random() * 4 + 1).toString())
     const { width, height } = useWindowSize()
     const [state,setState] =
         useState<states.LOADING | states.LOADED | states.COMPLETED | null>(states.LOADING)
@@ -63,7 +63,7 @@ export default function Home() {
         if (chances <= 0) {
             const remainingAnswers = extractRemainingItemsFromGroup()
             setCorrectAnswers(prevCorrectAnswers => [...prevCorrectAnswers, ...remainingAnswers])
-            addDateToLocalStorage(day)
+            // addDateToLocalStorage(day) Not adding to storage as not counting days, if counting days do this.
         }
     }, [chances])
 
@@ -206,7 +206,7 @@ export default function Home() {
         if (!gameWon) {
             renderToast("Congrats you won!")
             setGameWon(true)
-            addDateToLocalStorage(day)
+            //addDateToLocalStorage(day)    Not adding to storage as not counting days, if counting days do this.
         }
         return (
             <Confetti
@@ -214,6 +214,10 @@ export default function Home() {
                 height={height}
             />
         )
+    }
+
+    const handlePlayAgain = () => {
+        window.location.reload()
     }
 
     return (
@@ -247,7 +251,14 @@ export default function Home() {
                         <Instructions isOpen={instructionsOpen} onClose={handleCloseInstructions}/>
                         {
                             chances <= 0 ? (
-                                renderAnswerTiles()
+                                <div>
+                                    {
+                                        renderAnswerTiles()
+                                    }
+                                    <div className="w-full flex justify-center mt-1">
+                                        <PlayAgain onClick={handlePlayAgain} disabled={false}/>
+                                    </div>
+                                </div>
                             ) : (
                                 <>
                                     {renderAnswerTiles()}
@@ -280,16 +291,22 @@ export default function Home() {
                                             <div className="w-full flex justify-center mt-1">
                                                 <SubmitButton onClick={handleSubmit} disabled={chances <= 0}/>
                                             </div>
-                                        ) : <></>
+                                        ) : (
+                                            <div className="w-full flex justify-center mt-1">
+                                                <PlayAgain onClick={handlePlayAgain} disabled={false}/>
+                                            </div>
+                                        )
                                     }
+
                                 </>
                             )
+
                         }
                     </div>
                 )
             }
             {
-                state === states.COMPLETED && (
+            state === states.COMPLETED && (
                     renderAnswerTilesWhenDayIsAlreadyDone()
                 )
             }
