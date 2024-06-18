@@ -12,7 +12,7 @@ export const AnswerTile:React.FC<AnswerTileProps> = ({category, items, color}) =
             <p className="absolute w-full flex justify-center top-[18px] text-black font-bold text-20">
                 {category}
             </p>
-            <p className="absolute w-full flex justify-center top-[50px] text-black font-medium text-12">
+            <p className="absolute w-full flex justify-center top-[50px] text-black font-medium text-12 text-center">
                 {items.join(', ')}
             </p>
         </div>
