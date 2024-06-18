@@ -27,7 +27,7 @@ enum states {
 }
 
 export default function Home() {
-    const [day, setDay] = useState(Math.floor(Math.random() * 4 + 1).toString())
+    const [day, setDay] = useState(Math.floor(Math.random() * 10 + 1).toString())
     const { width, height } = useWindowSize()
     const [state,setState] =
         useState<states.LOADING | states.LOADED | states.COMPLETED | null>(states.LOADING)
@@ -43,6 +43,7 @@ export default function Home() {
 
     useEffect(() => {
         if (day) {
+            console.log(`group ${day}`)
             setState(states.LOADING)
             getGroup(day)
                 .then((res: any) => {

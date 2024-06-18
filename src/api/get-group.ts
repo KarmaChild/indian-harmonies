@@ -22,7 +22,7 @@ export const getGroup = async (day: string) => {
 
             const groupData = await response.json()
 
-            console.log("response:", groupData)
+            console.log("response:", {"Yes this is a cheatcode":  groupData})
             resolve(groupData)
         } catch (error) {
             console.error("Error:", error)
